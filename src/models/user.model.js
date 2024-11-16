@@ -4,7 +4,7 @@ const collection = 'users';
 
 const usersSchema = new mongoose.Schema({
     images: {
-        type: [String],
+        type: String,
         required: false,
         default: "",
     },
