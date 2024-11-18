@@ -54,7 +54,7 @@ export default class UserController {
             const passwordMatch = await isValidPassword(user, password);
             if (!passwordMatch) return res.status(401).json({ status: 401, message: "La contraseña es incorrecta" });
             const token = jwt.sign({ email: user.email, first_name: user.first_name, last_name: user.last_name, role: user.role, cart: user.cart, id: user._id.toString() }, "coderhouse", { expiresIn: "1h" });
-            res.cookie("coderCookieToken", token, { maxAge: 3600000, httpOnly: true });
+            res.cookie("coderCookieToken", token, { maxAge: 3600000, httpOnly: true,  });
             await sessionDao.createSession(user._id, token);
             return res.status(200).json({ token });
         } catch (error) {
@@ -104,8 +104,14 @@ export default class UserController {
             if (first_name) updateData.first_name = first_name;
             if (last_name) updateData.last_name = last_name;
             if (address) updateData.address = address;
-            if (images) updateData.images = images;
             if (password) updateData.password = password;
+            if (req.file) {
+                const imagePath = req.file.path;
+    
+                // Convierte la imagen a Base64
+                const imageBuffer = await fs.promises.readFile(imagePath);
+                updateData.images = imageBuffer.toString("base64");
+            }
             const updatedUser = await userDao.updateUserById(id, updateData);
             if (!updatedUser) return res.status(404).json({ message: "Usuario no encontrado" });
             return res.status(200).json({ message: "Usuario modificado exitosamente", updatedUser });

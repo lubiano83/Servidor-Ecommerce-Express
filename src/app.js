@@ -4,7 +4,6 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import passport from "passport";
 import initializePassport from "./config/passport.config.js";
-import { soloAdmin, soloUser } from "./middlewares/auth.middleware.js";
 
 // Variables
 const APP = express();

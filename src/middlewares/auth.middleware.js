@@ -9,7 +9,7 @@ export function soloAdmin(req, res, next) {
     }
 }
 
-//Hacemos una funcion que verifique que seas user: 
+//Hacemos una funcion que verifique que seas user:
 export function soloUser(req, res, next) {
     if(req.user.role === "user" || req.user.role === "developer") {
         next();
