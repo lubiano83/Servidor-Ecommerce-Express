@@ -44,6 +44,7 @@ export default class UserDao {
     getUserToken = async(token) => {
         try {
             const user = await SessionModel.findOne({ token });
+            if(!user) {throw new Error ("Usuario no encontrado")};
             const userToken = user.token
             return userToken;
         } catch (error) {

@@ -1,14 +1,19 @@
 import multer from "multer";
-import path from "path";
 
-// Configuración de Multer
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "uploads/"); // Carpeta donde se guardarán las imágenes
+const upload = multer({
+    storage: multer.memoryStorage(), // Almacena las imágenes en memoria
+    fileFilter: (req, file, cb) => {
+        const fileTypes = /jpeg|jpg|png|gif|webp/;
+        const extName = fileTypes.test(file.originalname.toLowerCase());
+        const mimeType = fileTypes.test(file.mimetype);
+
+        if (extName && mimeType) {
+            cb(null, true);
+        } else {
+            cb(new Error("Solo se permiten imágenes"));
+        }
     },
-    filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-    },
+    limits: { fileSize: 5 * 1024 * 1024 }, // Límite de 5MB
 });
 
-const upload = multer({ storage });
+export default upload;

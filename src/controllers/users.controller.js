@@ -3,6 +3,7 @@ import CartDao from '../dao/cart.dao.js';
 import SessionDao from "../dao/session.dao.js";
 import { createHash, isValidPassword } from '../utils/bcrypt.js';
 import jwt from "jsonwebtoken";
+import fs from "fs";
 
 const userDao = new UserDao();
 const cartDao = new CartDao();
@@ -56,7 +57,7 @@ export default class UserController {
             const token = jwt.sign({ email: user.email, first_name: user.first_name, last_name: user.last_name, role: user.role, cart: user.cart, id: user._id.toString() }, "coderhouse", { expiresIn: "1h" });
             res.cookie("coderCookieToken", token, { maxAge: 3600000, httpOnly: true,  });
             await sessionDao.createSession(user._id, token);
-            return res.status(200).json({ token });
+            return res.status(200).json({ status: 200, message: "Usuario logeado con exito", token });
         } catch (error) {
             console.log(error.message);
             return res.status(500).json({ message: "Error al logear un usuario", error: error.message });
@@ -96,30 +97,38 @@ export default class UserController {
         }
     };
 
-    updateUser = async(req, res) => {
+    updateUser = async (req, res) => {
         try {
             const { id } = req.params;
-            const { first_name, last_name, address, images, password } = req.body;
+            const { first_name, last_name, address, password } = req.body;
+    
+            // Construir objeto de datos para actualizar
             const updateData = {};
             if (first_name) updateData.first_name = first_name;
             if (last_name) updateData.last_name = last_name;
-            if (address) updateData.address = address;
-            if (password) updateData.password = password;
-            if (req.file) {
-                const imagePath = req.file.path;
+            if (address) updateData.address = address; // Parsear JSON si es necesario
+            if (password) updateData.password = await createHash(password);
     
-                // Convierte la imagen a Base64
-                const imageBuffer = await fs.promises.readFile(imagePath);
-                updateData.images = imageBuffer.toString("base64");
+            // Procesar archivo cargado si existe
+            if (req.file) {
+                const imageBuffer = req.file.buffer; // Buffer de la imagen
+                const imageBase64 = imageBuffer.toString("base64"); // Convertir a Base64
+                updateData.images = `data:${req.file.mimetype};base64,${imageBase64}`; // Formato Base64
             }
+    
+            // Actualizar usuario en la base de datos
             const updatedUser = await userDao.updateUserById(id, updateData);
-            if (!updatedUser) return res.status(404).json({ message: "Usuario no encontrado" });
+    
+            if (!updatedUser) {
+                return res.status(404).json({ message: "Usuario no encontrado" });
+            }
+    
             return res.status(200).json({ message: "Usuario modificado exitosamente", updatedUser });
         } catch (error) {
-            console.log(error.message);
+            console.error("Error al actualizar el usuario:", error);
             return res.status(500).json({ message: "Error al actualizar el usuario", error: error.message });
         }
-    };
+    };    
 
     logoutUser = async(req, res) => {
         try {
