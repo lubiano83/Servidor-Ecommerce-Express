@@ -3,7 +3,6 @@ import CartDao from '../dao/cart.dao.js';
 import SessionDao from "../dao/session.dao.js";
 import { createHash, isValidPassword } from '../utils/bcrypt.js';
 import jwt from "jsonwebtoken";
-import fs from "fs";
 
 const userDao = new UserDao();
 const cartDao = new CartDao();
@@ -98,35 +97,28 @@ export default class UserController {
     };
 
     updateUser = async (req, res) => {
+        console.log("Headers:", req.headers);
+        console.log("Body:", req.body);
+        console.log("File:", req.file);
+
         try {
-            const { id } = req.params;
-            const { first_name, last_name, address, password } = req.body;
-    
-            // Construir objeto de datos para actualizar
-            const updateData = {};
-            if (first_name) updateData.first_name = first_name;
-            if (last_name) updateData.last_name = last_name;
-            if (address) updateData.address = address; // Parsear JSON si es necesario
-            if (password) updateData.password = await createHash(password);
-    
-            // Procesar archivo cargado si existe
+            const { first_name, last_name, region, city, street, number } = req.body;
+
+            const updateData = {
+            first_name,
+            last_name,
+            address: { region, city, street, number },
+            };
+
             if (req.file) {
-                const imageBuffer = req.file.buffer; // Buffer de la imagen
-                const imageBase64 = imageBuffer.toString("base64"); // Convertir a Base64
-                updateData.images = `data:${req.file.mimetype};base64,${imageBase64}`; // Formato Base64
+            updateData.images = `/uploads/${req.file.filename}`;
             }
-    
-            // Actualizar usuario en la base de datos
-            const updatedUser = await userDao.updateUserById(id, updateData);
-    
-            if (!updatedUser) {
-                return res.status(404).json({ message: "Usuario no encontrado" });
-            }
-    
-            return res.status(200).json({ message: "Usuario modificado exitosamente", updatedUser });
+
+            const updatedUser = await userDao.updateUserById(req.params.id, updateData);
+            res.status(200).json({ message: "Usuario actualizado", updatedUser });
         } catch (error) {
-            console.error("Error al actualizar el usuario:", error);
-            return res.status(500).json({ message: "Error al actualizar el usuario", error: error.message });
+            console.error("Error en el backend:", error);
+            res.status(500).json({ message: "Error interno del servidor" });
         }
     };    
 

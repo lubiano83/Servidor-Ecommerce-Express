@@ -50,17 +50,20 @@ export default class UserDao {
         }
     }
 
-    updateUserById = async( id, doc ) => {
+    updateUserById = async(id, doc) => {
         if (!isValidId(id)) {
-            return "ID no válido";
+            throw new Error("ID no válido");
         }
         try {
-            return await UserModel.findByIdAndUpdate( id, { $set: doc }, { new: true } );
+            const user = await UserModel.findById(id);
+            if (!user) throw new Error("Usuario no encontrado");
+            
+            return await UserModel.findByIdAndUpdate(id, { $set: doc }, { new: true });
         } catch (error) {
             console.log(error.message);
-            throw new Error( "Error al actualizar un usuario por el id: " + error.message );
+            throw new Error(`Error al actualizar un usuario por el id: ${error.message}`);
         }
-    }
+    };    
 
     deleteUserById = async (id) => {
         if (!isValidId(id)) {
