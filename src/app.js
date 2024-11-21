@@ -19,14 +19,6 @@ APP.use(express.urlencoded({ extended: true }));
 APP.use(cookieParser());
 initializePassport();
 
-APP.use((req, res, next) => {
-    console.log(`Método: ${req.method}, URL: ${req.url}`);
-    console.log("Headers:", req.headers);
-    console.log("Body:", req.body);
-    console.log("Files:", req.file || req.files);
-    next();
-});
-
 // Rutas estaticas
 APP.use("/uploads", express.static(path.join(process.cwd(), "src/public/uploads")));
 

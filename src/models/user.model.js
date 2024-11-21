@@ -10,23 +10,36 @@ const usersSchema = new mongoose.Schema({
     },
     first_name:{
         type: String,
-        required:true,
+        required: true,
         trim: true,
     },
     last_name:{
-        type:String,
-        required:true,
+        type: String,
+        required: true,
         trim: true,
     },
-    email:{
-        type:String,
-        required:true,
+    email: {
+        type: String,
+        required: true,
         trim: true,
-        unique:true
+        unique: true,
+        validate: {
+            validator: function(value) {
+                // Regex para validar un formato de email
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            },
+            message: props => `${props.value} no es un correo electrónico válido.`
+        }
+    },
+    phone: {
+        type: String,
+        required: false,
+        trim: true,
+        default: ""
     },
     password:{
-        type:String,
-        required:true,
+        type: String,
+        required: true,
     },
     role: {
         type: String,
@@ -86,7 +99,7 @@ const usersSchema = new mongoose.Schema({
         default: Date.now,
         index: true,
     },
-})
+});
 
 const UserModel = mongoose.models[collection] || mongoose.model(collection, usersSchema);
 export default UserModel;

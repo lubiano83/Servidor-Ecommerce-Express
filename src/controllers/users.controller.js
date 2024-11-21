@@ -3,6 +3,8 @@ import CartDao from '../dao/cart.dao.js';
 import SessionDao from "../dao/session.dao.js";
 import { createHash, isValidPassword } from '../utils/bcrypt.js';
 import jwt from "jsonwebtoken";
+import fs from "fs";
+import path from "path";
 
 const userDao = new UserDao();
 const cartDao = new CartDao();
@@ -35,6 +37,7 @@ export default class UserController {
         try {
             const { first_name, last_name, email, password } = req.body;
             if (!first_name || !last_name || !email || !password) return res.status(400).json({ status: 400, message: "Todos los campos son requeridos" });
+            if (password.length < 6 || password.length > 10) return res.status(400).json({ message: "La contraseña debe tener entre 6 y 10 caracteres." });
             const hashedPassword = await createHash(password);
             const newCart = await cartDao.createCart({ products: [] });
             const newUserData = { first_name, last_name, email, password: hashedPassword, cart: newCart._id };
@@ -97,30 +100,44 @@ export default class UserController {
     };
 
     updateUser = async (req, res) => {
-        console.log("Headers:", req.headers);
-        console.log("Body:", req.body);
-        console.log("File:", req.file);
-
         try {
-            const { first_name, last_name, region, city, street, number } = req.body;
-
+            const { first_name, last_name, region, city, street, number, phone } = req.body;
+    
             const updateData = {
-            first_name,
-            last_name,
-            address: { region, city, street, number },
+                first_name,
+                last_name,
+                address: { region, city, street, number },
+                phone
             };
-
-            if (req.file) {
-            updateData.images = `/uploads/${req.file.filename}`;
+    
+            // Obtener datos del usuario actual para verificar la imagen previa
+            const user = await userDao.getUserById(req.params.id);
+            if (!user) {
+                return res.status(404).json({ message: "Usuario no encontrado" });
             }
-
+    
+            // Eliminar la imagen anterior si existe y se está cargando una nueva
+            if (req.file) {
+                const oldImagePath = path.join(process.cwd(), "src/public", user.images); // Ruta completa de la imagen previa
+                if (user.images && fs.existsSync(oldImagePath)) {
+                    fs.unlinkSync(oldImagePath); // Elimina la imagen anterior
+                    console.log(`Imagen anterior eliminada: ${oldImagePath}`);
+                }
+    
+                // Actualiza el campo de la nueva imagen
+                updateData.images = `/uploads/${req.file.filename}`;
+            }
+    
+            // Actualizar los datos del usuario
             const updatedUser = await userDao.updateUserById(req.params.id, updateData);
+            console.log(updatedUser);
+            
             res.status(200).json({ message: "Usuario actualizado", updatedUser });
         } catch (error) {
             console.error("Error en el backend:", error);
             res.status(500).json({ message: "Error interno del servidor" });
         }
-    };    
+    };
 
     logoutUser = async(req, res) => {
         try {
