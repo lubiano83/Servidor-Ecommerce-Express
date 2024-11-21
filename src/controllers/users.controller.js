@@ -88,13 +88,22 @@ export default class UserController {
         }
     };
 
-    deleteUserById = async(req, res) => {
+    deleteUserById = async (req, res) => {
         try {
             const { id } = req.params;
+            const user = await userDao.getUserById(id);
+            if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+            const imagePath = path.join(process.cwd(), "src/public", user.images);
+            if (fs.existsSync(imagePath)) {
+                fs.unlinkSync(imagePath);
+                console.log(`Imagen eliminada: ${imagePath}`);
+            } else {
+                console.warn(`La imagen no existe en: ${imagePath}`);
+            }
             await userDao.deleteUserById(id);
-            return res.status(200).json({ message: "Usuario eliminado con exito" });
+            return res.status(200).json({ message: "Usuario eliminado con éxito" });
         } catch (error) {
-            console.log(error.message);
+            console.error("Error al eliminar usuario:", error.message);
             return res.status(500).json({ message: "Error al eliminar un usuario", error: error.message });
         }
     };
@@ -102,36 +111,24 @@ export default class UserController {
     updateUser = async (req, res) => {
         try {
             const { first_name, last_name, region, city, street, number, phone } = req.body;
-    
             const updateData = {
                 first_name,
                 last_name,
                 address: { region, city, street, number },
                 phone
             };
-    
-            // Obtener datos del usuario actual para verificar la imagen previa
             const user = await userDao.getUserById(req.params.id);
-            if (!user) {
-                return res.status(404).json({ message: "Usuario no encontrado" });
-            }
-    
-            // Eliminar la imagen anterior si existe y se está cargando una nueva
+            if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
             if (req.file) {
-                const oldImagePath = path.join(process.cwd(), "src/public", user.images); // Ruta completa de la imagen previa
+                const oldImagePath = path.join(process.cwd(), "src/public", user.images);
                 if (user.images && fs.existsSync(oldImagePath)) {
-                    fs.unlinkSync(oldImagePath); // Elimina la imagen anterior
+                    fs.unlinkSync(oldImagePath);
                     console.log(`Imagen anterior eliminada: ${oldImagePath}`);
                 }
-    
-                // Actualiza el campo de la nueva imagen
                 updateData.images = `/uploads/${req.file.filename}`;
             }
-    
-            // Actualizar los datos del usuario
             const updatedUser = await userDao.updateUserById(req.params.id, updateData);
             console.log(updatedUser);
-            
             res.status(200).json({ message: "Usuario actualizado", updatedUser });
         } catch (error) {
             console.error("Error en el backend:", error);
