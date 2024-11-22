@@ -44,7 +44,6 @@ export default class UserController {
             const user = await userDao.createUser(newUserData);
             return res.status(201).json({ message: "Usuario creado con exito", user });
         } catch (error) {
-            console.log(error.message);
             return res.status(500).json({ message: "Error al registrar un usuario", error: error.message });
         }
     }
@@ -61,7 +60,6 @@ export default class UserController {
             await sessionDao.createSession(user._id, token);
             return res.status(200).json({ status: 200, message: "Usuario logeado con exito", token });
         } catch (error) {
-            console.log(error.message);
             return res.status(500).json({ message: "Error al logear un usuario", error: error.message });
         }
     };
@@ -72,7 +70,6 @@ export default class UserController {
             const usersOnline = users.length;
             return res.status(200).json({ usersOnline });
         } catch (error) {
-            console.log(error.message);
             return res.status(500).json({ message: "Error al obtener los usuarios online", error: error.message });
         }
     };
@@ -83,7 +80,6 @@ export default class UserController {
             const usersRegistered = users.length;
             return res.status(200).json({ usersRegistered });
         } catch (error) {
-            console.log(error.message);
             return res.status(500).json({ message: "Error al obtener los usuarios registrados", error: error.message });
         }
     };
@@ -93,17 +89,15 @@ export default class UserController {
             const { id } = req.params;
             const user = await userDao.getUserById(id);
             if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-            const imagePath = path.join(process.cwd(), "src/public", user.images);
-            if (fs.existsSync(imagePath)) {
-                fs.unlinkSync(imagePath);
-                console.log(`Imagen eliminada: ${imagePath}`);
-            } else {
-                console.warn(`La imagen no existe en: ${imagePath}`);
+            if(user.images) {
+                const imagePath = path.join(process.cwd(), "src/public", user.images);
+                if (fs.existsSync(imagePath)) {
+                    fs.unlinkSync(imagePath);
+                }
             }
             await userDao.deleteUserById(id);
             return res.status(200).json({ message: "Usuario eliminado con éxito" });
         } catch (error) {
-            console.error("Error al eliminar usuario:", error.message);
             return res.status(500).json({ message: "Error al eliminar un usuario", error: error.message });
         }
     };
@@ -111,27 +105,26 @@ export default class UserController {
     updateUser = async (req, res) => {
         try {
             const { first_name, last_name, region, city, street, number, phone } = req.body;
+            const { id } = await req.params;
+            const { filename } = req.file;
             const updateData = {
                 first_name,
                 last_name,
                 address: { region, city, street, number },
                 phone
             };
-            const user = await userDao.getUserById(req.params.id);
+            const user = await userDao.getUserById(id);
             if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
             if (req.file) {
                 const oldImagePath = path.join(process.cwd(), "src/public", user.images);
                 if (user.images && fs.existsSync(oldImagePath)) {
                     fs.unlinkSync(oldImagePath);
-                    console.log(`Imagen anterior eliminada: ${oldImagePath}`);
                 }
-                updateData.images = `/uploads/${req.file.filename}`;
+                updateData.images = `/uploads/${filename}`;
             }
-            const updatedUser = await userDao.updateUserById(req.params.id, updateData);
-            console.log(updatedUser);
+            const updatedUser = await userDao.updateUserById(id, updateData);
             res.status(200).json({ message: "Usuario actualizado", updatedUser });
         } catch (error) {
-            console.error("Error en el backend:", error);
             res.status(500).json({ message: "Error interno del servidor" });
         }
     };
@@ -143,7 +136,6 @@ export default class UserController {
             await sessionDao.deleteSession(userToken);
             return res.status(200).json({ message: "Sesion cerrada con exito" });
         } catch (error) {
-            console.error("Error al cerrar sesión:", error);
             return res.status(500).json({ message: "Error al cerrar sesión", error: error.message });
         }
     };
