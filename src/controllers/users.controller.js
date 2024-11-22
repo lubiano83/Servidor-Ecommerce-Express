@@ -55,8 +55,8 @@ export default class UserController {
             if (!user) return res.status(404).json({ status: 404, message: "El usuario no está registrado" });
             const passwordMatch = await isValidPassword(user, password);
             if (!passwordMatch) return res.status(401).json({ status: 401, message: "La contraseña es incorrecta" });
-            const token = jwt.sign({ email: user.email, first_name: user.first_name, last_name: user.last_name, role: user.role, cart: user.cart, id: user._id.toString() }, "coderhouse", { expiresIn: "1h" });
-            res.cookie("coderCookieToken", token, { maxAge: 3600000, httpOnly: true,  });
+            const token = jwt.sign({ email: user.email, first_name: user.first_name, last_name: user.last_name, role: user.role, cart: user.cart, id: user._id.toString() }, process.env.COOKIE_KEY, { expiresIn: "1h" });
+            res.cookie("coderCookieToken", token, { maxAge: 3600000, httpOnly: true });
             await sessionDao.createSession(user._id, token);
             return res.status(200).json({ status: 200, message: "Usuario logeado con exito", token });
         } catch (error) {
@@ -84,7 +84,7 @@ export default class UserController {
         }
     };
 
-    deleteUserById = async (req, res) => {
+    deleteUserById = async(req, res) => {
         try {
             const { id } = req.params;
             const user = await userDao.getUserById(id);
@@ -102,7 +102,7 @@ export default class UserController {
         }
     };
 
-    updateUser = async (req, res) => {
+    updateUser = async(req, res) => {
         try {
             const { first_name, last_name, region, city, street, number, phone } = req.body;
             const { id } = await req.params;
@@ -115,7 +115,7 @@ export default class UserController {
             };
             const user = await userDao.getUserById(id);
             if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-            if (req.file) {
+            if (filename) {
                 const oldImagePath = path.join(process.cwd(), "src/public", user.images);
                 if (user.images && fs.existsSync(oldImagePath)) {
                     fs.unlinkSync(oldImagePath);
@@ -129,14 +129,15 @@ export default class UserController {
         }
     };
 
-    logoutUser = async(req, res) => {
+    logoutUser = async (req, res) => {
         try {
-            const { token } = req.body;       
-            const userToken = await sessionDao.getUserToken(token);
-            await sessionDao.deleteSession(userToken);
-            return res.status(200).json({ message: "Sesion cerrada con exito" });
+            const token = req.cookies.coderCookieToken; // Obtén el token de la cookie
+            if (token) {
+                await sessionDao.deleteSession(token); // Opcional: elimina la sesión de la base de datos
+            }
+            return res.status(200).json({ message: "Sesión cerrada con éxito" });
         } catch (error) {
             return res.status(500).json({ message: "Error al cerrar sesión", error: error.message });
         }
-    };
+    };    
 }
