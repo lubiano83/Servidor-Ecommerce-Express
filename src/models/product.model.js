@@ -4,10 +4,9 @@ import paginate from "mongoose-paginate-v2";
 const collection = "products";
 
 const productSchema = new mongoose.Schema({
-    images: {
-        type: [String],
-        required: false,
-        default: [],
+    image: {
+        type: String,
+        required: true,
     },
     title: {
         type: String,
@@ -15,6 +14,7 @@ const productSchema = new mongoose.Schema({
         lowercase: true,
         trim: true,
         index: { name: "idx_title" },
+        unique: true
     },
     category: {
         type: String,
@@ -41,6 +41,12 @@ const productSchema = new mongoose.Schema({
         lowercase: true,
         trim: true,
     },
+    specifications: {
+        type: String,
+        required: false,
+        lowercase: true,
+        trim: true
+    },
     price: {
         type: Number,
         required: true,
@@ -58,7 +64,7 @@ const productSchema = new mongoose.Schema({
         },
         minSafeQuantity: {
             type: Number,
-            required: true,
+            required: false,
         }
     },
     available: {
@@ -68,7 +74,7 @@ const productSchema = new mongoose.Schema({
     },
     description: {
         type: String,
-        required: true,
+        required: false,
         lowercase: true,
         trim: true,
     },

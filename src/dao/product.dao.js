@@ -8,32 +8,67 @@ export default class ProductDao {
         connectDB();
     }
     
-    getProducts = async( params ) => {
-        return await ProductModel.find( params );
+    getProducts = async() => {
+        try {
+            return await ProductModel.find();
+        } catch (error) {
+            throw new Error({ message: "Error al obtener los productos en el dao", error: error.message });
+        }
     }
 
     getProductById = async( id ) => {
         if (!isValidId(id)) {
-            return "ID no válido";
+            throw new Error("ID no válido");
         }
-        return await ProductModel.findOne( id );
+        try {
+            return await ProductModel.findOne({ _id: id });
+        } catch (error) {
+            throw new Error( "Error al obtener el producto por el id: " + error.message );
+        }
     }
 
-    createProduct = async( doc ) => {
-        return await ProductModel.save( doc );
+    getProductByTitle = async(title) => {
+        try {
+            return await ProductModel.findOne({ title });
+        } catch (error) {
+            throw new Error( "Error al obtener el producto por el titulo: " + error.message );
+        }
+    }
+
+    createProduct = async( productData ) => {
+        try {
+            const product = await ProductModel( productData );
+            await product.save()
+            return product;
+        } catch (error) {
+            throw new Error( "Error al crear un producto: " + error.message );
+        }
     }
 
     updateProductById = async( id, doc ) => {
         if (!isValidId(id)) {
-            return "ID no válido";
+            throw new Error("ID no válido");
         }
-        return await ProductModel.findByIdAndUpdate( id, { $set: doc } )
+        try {
+            const product = await ProductModel.findById(id);
+            if(!product) throw new Error("Producto no encontrado");
+            return await ProductModel.findByIdAndUpdate(id, { $set: doc }, { new: true });
+        } catch (error) {
+            throw new Error(`Error al actualizar un usuario por el id: ${error.message}`);
+        }
     }
 
     deleteProductById = async( id ) => {
         if (!isValidId(id)) {
-            return "ID no válido";
+            throw new Error("ID no válido");
         }
-        return await ProductModel.findByIdAndDelete( id );
+        try {
+            const product = await ProductModel.findById(id);
+            if(!product) throw new Error("Producto no encontrado");
+            await ProductModel.findByIdAndDelete( id );
+            return { status: 200, message: "Usuario eliminado exitosamente" };
+        } catch (error) {
+            throw new Error("Error al eliminar un usuario y su carrito: " + error.message);
+        }
     }
 }

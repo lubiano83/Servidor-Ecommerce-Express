@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const collection = 'users';
 
 const usersSchema = new mongoose.Schema({
-    images: {
+    image: {
         type: String,
         required: false,
         default: "",

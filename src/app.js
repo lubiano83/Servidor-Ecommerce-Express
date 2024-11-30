@@ -1,5 +1,6 @@
 import express from "express";
 import userRouter from "./routes/user.router.js";
+import productRouter from "./routes/product.router.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import passport from "passport";
@@ -31,6 +32,7 @@ APP.use(cors({
 
 // Rutas
 APP.use("/api/auth", userRouter);
+APP.use("/api/products", productRouter);
 
 // Escuchando al servidor
 APP.listen(PORT, () => console.log(`Escuchando en http://${HOST}:${PORT}`));

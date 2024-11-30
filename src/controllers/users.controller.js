@@ -17,7 +17,6 @@ export default class UserController {
             const users = await userDao.getUsers();
             return res.status(200).json({ users });
         } catch (error) {
-            console.log(error.message);
             return res.status(500).json({ message: "Error al obtener los usuarios", error: error.message });
         }
     }
@@ -26,7 +25,7 @@ export default class UserController {
         try {
             const { id } = req.params;
             const user = await userDao.getUserById(id);
-            if (!user) return res.status(404).json({ status: 404, message: "Usuario no encontrado" });
+            if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
             return res.status(200).json({ user });
         } catch (error) {
             return res.status(500).json({ message: "Error al obtener el usuario", error: error.message });
@@ -51,18 +50,19 @@ export default class UserController {
     loginUser = async(req, res) => {
         try {
             const { email, password } = req.body;
+            if (!email || !password) return res.status(400).json({ status: 400, message: "Email y contraseña son requeridos" });
             const user = await userDao.findUserByEmail(email);
             if (!user) return res.status(404).json({ status: 404, message: "El usuario no está registrado" });
             const passwordMatch = await isValidPassword(user, password);
             if (!passwordMatch) return res.status(401).json({ status: 401, message: "La contraseña es incorrecta" });
             const token = jwt.sign({ email: user.email, first_name: user.first_name, last_name: user.last_name, role: user.role, cart: user.cart, id: user._id.toString() }, process.env.COOKIE_KEY, { expiresIn: "1h" });
-            res.cookie("coderCookieToken", token, { maxAge: 3600000, httpOnly: true });
+            res.cookie("coderCookieToken", token, { maxAge: 3600000, httpOnly: true, secure: true, sameSite: "strict", path: "/" });
             await sessionDao.createSession(user._id, token);
-            return res.status(200).json({ status: 200, message: "Usuario logeado con exito", token });
+            return res.status(200).json({ status: 200, message: "Usuario logeado con éxito", token });
         } catch (error) {
             return res.status(500).json({ message: "Error al logear un usuario", error: error.message });
         }
-    };
+    };    
 
     usersLogged = async(req, res) => {
         try {
@@ -102,42 +102,43 @@ export default class UserController {
         }
     };
 
-    updateUser = async(req, res) => {
+    updateUser = async (req, res) => {
         try {
             const { first_name, last_name, region, city, street, number, phone } = req.body;
-            const { id } = await req.params;
+            const { id } = req.params;
             const { filename } = req.file;
-            const updateData = {
-                first_name,
-                last_name,
-                address: { region, city, street, number },
-                phone
-            };
+            if (!filename) return res.status(400).json({ message: "No se subió ninguna imagen" });
+            const newImagePath = `/profile/${filename}`;
+            const updateData = { first_name, last_name, address: { region, city, street, number }, phone, image: newImagePath };
             const user = await userDao.getUserById(id);
             if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-            if (filename) {
-                const oldImagePath = path.join(process.cwd(), "src/public", user.images);
-                if (user.images && fs.existsSync(oldImagePath)) {
+            if (user.image) {
+                const oldImagePath = path.join(process.cwd(), "src/public", user.image);
+                if (fs.existsSync(oldImagePath)) {
                     fs.unlinkSync(oldImagePath);
+                    console.log("Imagen anterior eliminada correctamente.");
+                } else {
+                    console.log("La imagen anterior no existe:", oldImagePath);
                 }
-                updateData.images = `/uploads/${filename}`;
             }
             const updatedUser = await userDao.updateUserById(id, updateData);
-            res.status(200).json({ message: "Usuario actualizado", updatedUser });
+            res.status(200).json({ message: "Usuario actualizado con éxito", updatedUser });
         } catch (error) {
-            res.status(500).json({ message: "Error interno del servidor" });
+            res.status(500).json({ message: "Error interno del servidor", error: error.message });
         }
     };
-
-    logoutUser = async (req, res) => {
+    
+    logoutUser = async(req, res) => {
         try {
-            const token = req.cookies.coderCookieToken; // Obtén el token de la cookie
-            if (token) {
-                await sessionDao.deleteSession(token); // Opcional: elimina la sesión de la base de datos
+            const token = req.cookies.coderCookieToken;
+            res.clearCookie("coderCookieToken", { httpOnly: true, secure: true, sameSite: "strict", path: "/" });
+            if (!token) {
+                return res.status(401).json({ message: "Token no encontrado, sesión cerrada" });
             }
+            await sessionDao.deleteSession(token);
             return res.status(200).json({ message: "Sesión cerrada con éxito" });
         } catch (error) {
             return res.status(500).json({ message: "Error al cerrar sesión", error: error.message });
         }
-    };    
+    };
 }

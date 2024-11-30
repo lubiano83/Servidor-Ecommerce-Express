@@ -1,14 +1,24 @@
 import multer from "multer";
 
-const storage = multer.diskStorage({
+const profileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "src/public/uploads");
+    cb(null, "src/public/profile");
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
 
-const upload = multer({ storage });
+const productsStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "src/public/products");
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
 
-export default upload;
+const uploadProfile = multer({ storage: profileStorage });
+const uploadProducts = multer({ storage: productsStorage });
+
+export { uploadProfile, uploadProducts };
