@@ -37,18 +37,36 @@ export default class CartDao {
         }
     }
 
-    updateCartById = async( id, doc ) => {
+    updateCartById = async (id, products) => {
         try {
             if (!isValidId(id)) {
                 throw new Error("ID no válido");
             }
-            const cart = await CartModel.findById( id );
-            if(!cart) throw new Error("Carrito no encontrado");
-            return await CartModel.findByIdAndUpdate(id, { $set: doc }, { new: true });
+    
+            const cart = await CartModel.findById(id);
+            if (!cart) throw new Error("Carrito no encontrado");
+    
+            for (const product of products) {
+                const existingProduct = cart.products.find(
+                    (item) => item.id.toString() === product.id
+                );
+    
+                if (existingProduct) {
+                    // Si el producto ya existe, actualiza su cantidad
+                    existingProduct.quantity += product.quantity;
+                } else {
+                    // Si no existe, agrega el producto al array
+                    cart.products.push(product);
+                }
+            }
+    
+            // Guarda los cambios en el carrito
+            await cart.save();
+            return cart;
         } catch (error) {
-            throw new Error(`Error al actualizar el carrito por el id: ${error.message}`);
+            throw new Error(`Error al actualizar el carrito: ${error.message}`);
         }
-    }
+    };    
 
     deleteCartById = async( id ) => {
         try {

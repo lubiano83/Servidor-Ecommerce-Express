@@ -70,4 +70,26 @@ export default class ProductDao {
             throw new Error("Error al eliminar un producto por el id: " + error.message);
         }
     }
+
+    paginate = async(filters, { limit, page, sort }) =>  {
+        try {
+            return await ProductModel.paginate(filters, {
+                limit: limit,
+                page: page,
+                sort: sort,
+                lean: true,
+                pagination: true,
+            });
+        } catch (error) {
+            throw new Error("Error al obtener los datos: " + error.message);
+        }
+    }
+
+    explain = async(filters) => {
+        try {
+            return await ProductModel.find(filters).explain();
+        } catch (error) {
+            throw new Error("Error al obtener los datos: " + error.message);
+        }
+    }
 }
