@@ -18,10 +18,10 @@ export default class UserDao {
     };
 
     getUserById = async(id) => {
-        if (!isValidId(id)) {
-            throw new Error("ID no válido");
-        }
         try {
+            if (!isValidId(id)) {
+                throw new Error("ID no válido");
+            }
             return await UserModel.findOne({ _id: id });
         } catch (error) {
             throw new Error( "Error al obtener el usuario por el id: " + error.message );
@@ -47,10 +47,10 @@ export default class UserDao {
     }
 
     updateUserById = async(id, doc) => {
-        if (!isValidId(id)) {
-            throw new Error("ID no válido");
-        }
         try {
+            if (!isValidId(id)) {
+                throw new Error("ID no válido");
+            }
             const user = await UserModel.findById(id);
             if (!user) throw new Error("Usuario no encontrado");
             
@@ -61,10 +61,10 @@ export default class UserDao {
     };    
 
     deleteUserById = async (id) => {
-        if (!isValidId(id)) {
-            throw new Error("ID no válido");
-        }
         try {
+            if (!isValidId(id)) {
+                throw new Error("ID no válido");
+            }
             const user = await UserModel.findById(id);
             if (!user) return new Error("Usuario no encontrado");
             const cartId = user.cart.toString();

@@ -4,6 +4,7 @@ import { isValidId, connectDB } from "../config/mongoose.config.js";
 export default class UserDao {
 
     constructor() {
+        // Intentamos conectar a la base de datos
         connectDB();
     }
 
@@ -16,10 +17,10 @@ export default class UserDao {
     };
     
     createSession = async (id, token) => {
-        if (!isValidId(id)) {
-            return "ID no válido";
-        }
         try {
+            if (!isValidId(id)) {
+                throw new Error("ID no válido");
+            }
             const session = await SessionModel({ id, token });
             await session.save();
             return session;
@@ -34,10 +35,8 @@ export default class UserDao {
             if (!session) {
                 return { status: 404, message: "Sesión no encontrada" };
             }
-            return { status: 200, message: "Sesión eliminada de la base de datos" };
         } catch (error) {
-            console.error("Error al cerrar sesión:", error);
-            return { status: 500, message: "Error al eliminar la sesión", error: error.message };
+            throw new Error( "Error al cerrar una session " + error.message );
         }
     };
 
@@ -48,8 +47,7 @@ export default class UserDao {
             const userToken = user.token
             return userToken;
         } catch (error) {
-            console.error("Error al obtener el token ", error);
-            return { status: 500, message: "Error al obtener el token", error: error.message };
+            throw new Error( "Error al obtener un token " + error.message );
         }
     };
 }

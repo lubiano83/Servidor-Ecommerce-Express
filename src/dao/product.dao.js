@@ -17,10 +17,10 @@ export default class ProductDao {
     }
 
     getProductById = async( id ) => {
-        if (!isValidId(id)) {
-            throw new Error("ID no válido");
-        }
         try {
+            if (!isValidId(id)) {
+                throw new Error("ID no válido");
+            }
             return await ProductModel.findOne({ _id: id });
         } catch (error) {
             throw new Error( "Error al obtener el producto por el id: " + error.message );
@@ -46,29 +46,28 @@ export default class ProductDao {
     }
 
     updateProductById = async( id, doc ) => {
-        if (!isValidId(id)) {
-            throw new Error("ID no válido");
-        }
         try {
+            if (!isValidId(id)) {
+                throw new Error("ID no válido");
+            }
             const product = await ProductModel.findById(id);
             if(!product) throw new Error("Producto no encontrado");
             return await ProductModel.findByIdAndUpdate(id, { $set: doc }, { new: true });
         } catch (error) {
-            throw new Error(`Error al actualizar un usuario por el id: ${error.message}`);
+            throw new Error(`Error al actualizar un producto por el id: ${error.message}`);
         }
     }
 
     deleteProductById = async( id ) => {
-        if (!isValidId(id)) {
-            throw new Error("ID no válido");
-        }
         try {
+            if (!isValidId(id)) {
+                throw new Error("ID no válido");
+            }
             const product = await ProductModel.findById(id);
             if(!product) throw new Error("Producto no encontrado");
-            await ProductModel.findByIdAndDelete( id );
-            return { status: 200, message: "Usuario eliminado exitosamente" };
+            return await ProductModel.findByIdAndDelete( id );
         } catch (error) {
-            throw new Error("Error al eliminar un usuario y su carrito: " + error.message);
+            throw new Error("Error al eliminar un producto por el id: " + error.message);
         }
     }
 }

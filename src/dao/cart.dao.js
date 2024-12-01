@@ -8,32 +8,58 @@ export default class CartDao {
         connectDB();
     }
     
-    getCarts = async( params ) => {
-        return await CartModel.find( params );
+    getCarts = async() => {
+        try {
+            return await CartModel.find();
+        } catch (error) {
+            throw new Error({ message: "Error al obtener los carritos en el dao", error: error.message });
+        }
     }
 
     getCartById = async( id ) => {
-        if (!isValidId(id)) {
-            return "ID no válido";
+        try {
+            if (!isValidId(id)) {
+                throw new Error("ID no válido");
+            }
+            return await CartModel.findOne({ _id: id });
+        } catch (error) {
+            throw new Error( "Error al obtener el carrito por el id: " + error.message );
         }
-        return await CartModel.findOne( id );
     }
 
-    createCart = async(doc) => {
-        return await CartModel.create(doc);
+    createCart = async( cartData ) => {
+        try {
+            const cart = await CartModel( cartData );
+            await cart.save();
+            return cart;
+        } catch (error) {
+            throw new Error( "Error al crear un carrito: " + error.message );
+        }
     }
 
     updateCartById = async( id, doc ) => {
-        if (!isValidId(id)) {
-            return "ID no válido";
+        try {
+            if (!isValidId(id)) {
+                throw new Error("ID no válido");
+            }
+            const cart = await CartModel.findById( id );
+            if(!cart) throw new Error("Carrito no encontrado");
+            return await CartModel.findByIdAndUpdate(id, { $set: doc }, { new: true });
+        } catch (error) {
+            throw new Error(`Error al actualizar el carrito por el id: ${error.message}`);
         }
-        return await CartModel.findByIdAndUpdate( id, { $set: doc } );
     }
 
     deleteCartById = async( id ) => {
-        if (!isValidId(id)) {
-            return "ID no válido";
+        try {
+            if (!isValidId(id)) {
+                throw new Error("ID no válido");
+            }
+            const cart = await CartModel.findById( id );
+            if(!cart) throw new Error("Carrito no encontrado");
+            return await CartModel.findByIdAndDelete( id );
+        } catch (error) {
+            throw new Error("Error al eliminar un carrito por el id: " + error.message);
         }
-        return await CartModel.findByIdAndDelete( id );
     }
 }
