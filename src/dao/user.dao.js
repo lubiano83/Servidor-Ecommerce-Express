@@ -5,8 +5,7 @@ import { isValidId, connectDB } from "../config/mongoose.config.js";
 export default class UserDao {
 
     constructor() {
-        // Intentamos conectar a la base de datos
-        connectDB();
+        connectDB(); // Intentamos conectar a la base de datos
     }
     
     getUsers = async() => {
@@ -17,11 +16,9 @@ export default class UserDao {
         }
     };
 
-    getUserById = async(id) => {
+    getUserById = async( id ) => {
         try {
-            if (!isValidId(id)) {
-                throw new Error("ID no válido");
-            }
+            if (!isValidId(id)) throw new Error("ID no válido");
             return await UserModel.findOne({ _id: id });
         } catch (error) {
             throw new Error( "Error al obtener el usuario por el id: " + error.message );
@@ -46,25 +43,20 @@ export default class UserDao {
         }
     }
 
-    updateUserById = async(id, doc) => {
+    updateUserById = async( id, doc ) => {
         try {
-            if (!isValidId(id)) {
-                throw new Error("ID no válido");
-            }
+            if (!isValidId(id)) throw new Error("ID no válido");
             const user = await UserModel.findById(id);
             if (!user) throw new Error("Usuario no encontrado");
-            
             return await UserModel.findByIdAndUpdate(id, { $set: doc }, { new: true });
         } catch (error) {
             throw new Error(`Error al actualizar un usuario por el id: ${error.message}`);
         }
     };    
 
-    deleteUserById = async (id) => {
+    deleteUserById = async( id ) => {
         try {
-            if (!isValidId(id)) {
-                throw new Error("ID no válido");
-            }
+            if (!isValidId(id)) throw new Error("ID no válido");
             const user = await UserModel.findById(id);
             if (!user) return new Error("Usuario no encontrado");
             const cartId = user.cart.toString();
@@ -74,5 +66,4 @@ export default class UserDao {
             throw new Error("Error al eliminar un usuario y su carrito: " + error.message);
         }
     };
-    
 }

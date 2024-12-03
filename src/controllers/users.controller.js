@@ -141,4 +141,19 @@ export default class UserController {
             return res.status(500).json({ message: "Error al cerrar sesión", error: error.message });
         }
     };
-}
+
+    updateRole = async(req, res) => {
+        try {
+            const { id } = req.params
+            const { role } = req.body;
+            if (Array.isArray(role)) role = role[0];
+            const validRoles = ["admin", "user", "developer"];
+            if (!role || typeof role !== "string" || !validRoles.includes(role)) return res.status(400).json({ message: `El campo 'role' debe ser uno de los siguientes valores: ${validRoles.join(", ")}` });
+            if (!role) return res.status(400).json({ message: "El campo 'role' es requerido" });
+            const updateUser = await userDao.updateUserById( id, { role } );
+            return res.status(200).json({ message: "Rol actualizado con éxito", updateUser });
+        } catch (error) {
+            return res.status(500).json({ message: "Error al cerrar sesión", error: error.message });
+        }
+    }
+}   

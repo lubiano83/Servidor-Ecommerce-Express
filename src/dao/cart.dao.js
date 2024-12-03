@@ -4,8 +4,7 @@ import { isValidId, connectDB } from "../config/mongoose.config.js";
 export default class CartDao {
 
     constructor() {
-        // Intentamos conectar a la base de datos
-        connectDB();
+        connectDB(); // Intentamos conectar a la base de datos
     }
     
     getCarts = async() => {
@@ -18,9 +17,7 @@ export default class CartDao {
 
     getCartById = async( id ) => {
         try {
-            if (!isValidId(id)) {
-                throw new Error("ID no válido");
-            }
+            if (!isValidId(id)) throw new Error("ID no válido");
             return await CartModel.findOne({ _id: id });
         } catch (error) {
             throw new Error( "Error al obtener el carrito por el id: " + error.message );
@@ -39,40 +36,18 @@ export default class CartDao {
 
     updateCartById = async (id, products) => {
         try {
-            if (!isValidId(id)) {
-                throw new Error("ID no válido");
-            }
-    
-            const cart = await CartModel.findById(id);
-            if (!cart) throw new Error("Carrito no encontrado");
-    
-            for (const product of products) {
-                const existingProduct = cart.products.find(
-                    (item) => item.id.toString() === product.id
-                );
-    
-                if (existingProduct) {
-                    // Si el producto ya existe, actualiza su cantidad
-                    existingProduct.quantity += product.quantity;
-                } else {
-                    // Si no existe, agrega el producto al array
-                    cart.products.push(product);
-                }
-            }
-    
-            // Guarda los cambios en el carrito
-            await cart.save();
-            return cart;
+            if (!isValidId(id)) throw new Error("ID no válido");
+            const updatedCart = await CartModel.findByIdAndUpdate( id, { products }, { new: true } );
+            if (!updatedCart) throw new Error("Carrito no encontrado");
+            return updatedCart;
         } catch (error) {
             throw new Error(`Error al actualizar el carrito: ${error.message}`);
         }
-    };    
-
+    };
+    
     deleteCartById = async( id ) => {
         try {
-            if (!isValidId(id)) {
-                throw new Error("ID no válido");
-            }
+            if (!isValidId(id)) throw new Error("ID no válido");
             const cart = await CartModel.findById( id );
             if(!cart) throw new Error("Carrito no encontrado");
             return await CartModel.findByIdAndDelete( id );
@@ -80,4 +55,4 @@ export default class CartDao {
             throw new Error("Error al eliminar un carrito por el id: " + error.message);
         }
     }
-}
+};

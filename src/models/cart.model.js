@@ -19,14 +19,11 @@ const cartSchema = new mongoose.Schema({
     products: [cartItemSchema],
 });
 
-cartSchema.pre(/^find/, function(next) {
-    // Verificar si hay productos antes de hacer `populate`
-    if (this.products && this.products.length > 0) {
-        this.populate({
-            path: "products.id",
-            model: "products",
-        });
-    }
+cartSchema.pre(/^find/, function (next) {
+    this.populate({
+        path: "products.id",
+        model: "products",
+    });
     next();
 });
 

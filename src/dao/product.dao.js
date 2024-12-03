@@ -4,8 +4,7 @@ import { connectDB, isValidId } from "../config/mongoose.config.js";
 export default class ProductDao {
 
     constructor() {
-        // Intentamos conectar a la base de datos
-        connectDB();
+        connectDB(); // Intentamos conectar a la base de datos
     }
     
     getProducts = async() => {
@@ -18,9 +17,7 @@ export default class ProductDao {
 
     getProductById = async( id ) => {
         try {
-            if (!isValidId(id)) {
-                throw new Error("ID no válido");
-            }
+            if (!isValidId(id)) throw new Error("ID no válido");
             return await ProductModel.findOne({ _id: id });
         } catch (error) {
             throw new Error( "Error al obtener el producto por el id: " + error.message );
@@ -47,9 +44,7 @@ export default class ProductDao {
 
     updateProductById = async( id, doc ) => {
         try {
-            if (!isValidId(id)) {
-                throw new Error("ID no válido");
-            }
+            if (!isValidId(id)) throw new Error("ID no válido");
             const product = await ProductModel.findById(id);
             if(!product) throw new Error("Producto no encontrado");
             return await ProductModel.findByIdAndUpdate(id, { $set: doc }, { new: true });
@@ -60,9 +55,7 @@ export default class ProductDao {
 
     deleteProductById = async( id ) => {
         try {
-            if (!isValidId(id)) {
-                throw new Error("ID no válido");
-            }
+            if (!isValidId(id)) throw new Error("ID no válido");
             const product = await ProductModel.findById(id);
             if(!product) throw new Error("Producto no encontrado");
             return await ProductModel.findByIdAndDelete( id );
@@ -73,13 +66,7 @@ export default class ProductDao {
 
     paginate = async(filters, { limit, page, sort }) =>  {
         try {
-            return await ProductModel.paginate(filters, {
-                limit: limit,
-                page: page,
-                sort: sort,
-                lean: true,
-                pagination: true,
-            });
+            return await ProductModel.paginate(filters, { limit: limit, page: page, sort: sort, lean: true, pagination: true });
         } catch (error) {
             throw new Error("Error al obtener los datos: " + error.message);
         }
