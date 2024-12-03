@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const collection = "carts";
 
 const cartItemSchema = new mongoose.Schema({
-    id: {
+    product: { // Referencia al producto por su `_id`
         type: mongoose.Schema.Types.ObjectId,
         ref: "products",
         required: true,
@@ -12,16 +12,17 @@ const cartItemSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    _id: false, // Esto para que no aparezca el _id.
+    _id: false, // Evita que se genere un `_id` adicional para cada elemento
 });
 
 const cartSchema = new mongoose.Schema({
     products: [cartItemSchema],
 });
 
+// Configurar el `populate` correctamente
 cartSchema.pre(/^find/, function (next) {
     this.populate({
-        path: "products.id",
+        path: "products.product", // Popula `product` en lugar de `id`
         model: "products",
     });
     next();

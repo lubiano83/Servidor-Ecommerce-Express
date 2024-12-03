@@ -1,4 +1,5 @@
 import CartModel from "../models/cart.model.js";
+import ProductModel from "../models/product.model.js";
 import { isValidId, connectDB } from "../config/mongoose.config.js";
 
 export default class CartDao {

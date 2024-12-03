@@ -62,57 +62,44 @@ export default class CartController {
         }
     };
     
-
     addProductToCart = async (req, res) => {
         try {
-            const { pid } = req.params; // ID del producto
-            const cid = req.user.cart; // ID del carrito asociado al usuario
-    
-            // Validar los IDs
-            if (!pid || !cid) {
-                return res.status(400).json({ message: "Faltan parámetros obligatorios" });
-            }
-    
-            // Obtener el carrito y el producto
+            const { pid } = req.params;
+            const cid = req.user?.cart;
+            if (!pid || !cid) return res.status(400).json({ message: "Faltan parámetros obligatorios" });
             const cart = await cartDao.getCartById(cid);
-            if (!cart) {
-                return res.status(404).json({ message: "Carrito no encontrado" });
-            }
-    
+            if (!cart) return res.status(404).json({ message: "Carrito no encontrado" });
             const product = await productDao.getProductById(pid);
-            if (!product) {
-                return res.status(404).json({ message: "Producto no encontrado" });
-            }
-    
-            // Verificar si el producto ya está en el carrito
-            const existingProduct = cart.products.find(
-                (item) => item.id.toString() === pid
-            );
-    
+            if (!product) return res.status(404).json({ message: "Producto no encontrado" });
+            const existingProduct = cart.products.find(item => item.product?.toString() === pid);
             if (existingProduct) {
-                // Incrementar la cantidad del producto existente
                 existingProduct.quantity += 1;
             } else {
-                // Agregar el producto al carrito
-                cart.products.push({ id: pid, quantity: 1 });
+                cart.products.push({ product: pid, quantity: 1 });
             }
-    
-            // Actualizar el carrito
-            const updatedCart = await cartDao.updateCartById(cid, cart.products);
-    
-            // Obtener el carrito actualizado con productos populados
+            await cartDao.updateCartById(cid, cart.products);
             const populatedCart = await cartDao.getCartById(cid);
-    
-            return res.status(200).json({
-                message: "Producto agregado al carrito con éxito",
-                cart: populatedCart,
+            const consolidatedProducts = [];
+            populatedCart.products.forEach(item => {
+                const existing = consolidatedProducts.find(p => p._id.toString() === item.product._id.toString());
+                if (existing) {
+                    existing.quantity += item.quantity;
+                } else {
+                    consolidatedProducts.push({ ...item.product._doc, quantity: item.quantity });
+                }
             });
+            const transformedCart = { ...populatedCart._doc, products: consolidatedProducts };
+            return res.status(200).json({ message: "Producto agregado al carrito con éxito", cart: transformedCart });
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({
-                message: "Error al agregar el producto al carrito",
-                error: error.message,
-            });
+            return res.status(500).json({ message: "Error al agregar el producto al carrito", error: error.message });
         }
-    };    
+    };
+
+    cleanCart = async() => {
+        try {
+            
+        } catch (error) {
+            return res.status(500).json({ message: "Error al limpier el carrito", error: error.message });
+        }
+    }
 };
