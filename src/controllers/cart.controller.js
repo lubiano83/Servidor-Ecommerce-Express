@@ -1,5 +1,6 @@
 import CartDao from "../dao/cart.dao.js";
 import ProductDao from "../dao/product.dao.js";
+import TicketDao from "../dao/ticket.dao.js";
 
 const cartDao = new CartDao();
 const productDao = new ProductDao();
@@ -95,11 +96,42 @@ export default class CartController {
         }
     };
 
-    cleanCart = async() => {
+    clearCart = async(req, res) => {
         try {
-            
+            const { id } = req.params;
+            const products = []
+            if(!id) return res.status(400).send({ message: "El id es obligatorio" });
+            const cart = await cartDao.getCartById(id)
+            if(!cart) return res.status().send({ message: "Ese carrito no existe" });
+            const clearCart = await cartDao.updateCartById( id, products );
+            return res.status(200).send({ message: "El carrito ya esta limpio", clearCart });
         } catch (error) {
             return res.status(500).json({ message: "Error al limpier el carrito", error: error.message });
+        }
+    }
+
+    deleteProductFromCart = async(req, res) => {
+        try {
+            const cartId = req.user?.id;
+            const cart = await cartDao.getCartById(id)
+            console.log(cart);
+            
+            
+            
+            
+        } catch (error) {
+            
+        }
+    }
+
+    completePurchase = async(req, res) => {
+        try {
+            const cartId = req.user?.cart;
+            const userId = req.user?.id;
+            const cart = await cartDao.getCartById(cartId);
+            if(!cart) return res.status(400).send({ message: "El carrito no existe" });
+        } catch (error) {
+            return res.status(500).json({ message: "Error al realizar la compra", error: error.message });
         }
     }
 };

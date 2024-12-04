@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+const collection = 'tickets';
+
 const ticketSchema = new mongoose.Schema({
     purchaseDatetime: {
         type: Date,
@@ -17,5 +19,5 @@ const ticketSchema = new mongoose.Schema({
     },
 });
 
-const TickeModel = mongoose.model("tickets", ticketSchema);
-export default TickeModel;
+const TicketModel = mongoose.models[collection] || mongoose.model(collection, ticketSchema);
+export default TicketModel;
