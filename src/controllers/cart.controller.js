@@ -6,6 +6,7 @@ import UserDao from "../dao/user.dao.js";
 const cartDao = new CartDao();
 const productDao = new ProductDao();
 const userDao = new UserDao();
+const ticketDao = new TicketDao();
 
 export default class CartController {
     getCarts = async(req, res) => {
@@ -127,19 +128,85 @@ export default class CartController {
         }
     }
 
-    completePurchase = async(req, res) => {
+    completePurchase = async (req, res) => {
+        const cartId = req.user.cart; // ID del carrito del usuario
+        const userId = req.user.id; // ID del usuario
         try {
-            const cartId = req.user?.cart;
-            const userId = req.user?.id;
+            // Obtener el carrito
             const cart = await cartDao.getCartById(cartId);
-            if(!cart) return res.status(400).send({ message: "El carrito no existe" });
-            const user = await userDao.getUserById(userId);
-            
-            
-            
-            
+            if (!cart || cart.products.length === 0) {
+                return res.status(400).json({ message: "El carrito está vacío o no existe." });
+            }
+    
+            let total = 0;
+            const productsPartialSold = [];
+            const remainingProducts = [];
+    
+            // Procesar los productos del carrito
+            for (const product of cart.products) {
+                const stockAvailable = product.detail.stock.quantity; // Stock disponible
+                const quantityRequested = product.requestedQuantity; // Cantidad solicitada
+    
+                if (quantityRequested > stockAvailable) {
+                    // Caso: No hay suficiente stock para cubrir la solicitud
+                    total += product.detail.price * stockAvailable;
+    
+                    productsPartialSold.push({
+                        productId: product.detail._id,
+                        title: product.detail.title,
+                        requestedQuantity: quantityRequested,
+                        soldQuantity: stockAvailable,
+                        remainingQuantity: quantityRequested - stockAvailable,
+                    });
+    
+                    remainingProducts.push({
+                        detail: product.detail._id,
+                        requestedQuantity: quantityRequested - stockAvailable,
+                    });
+    
+                    // Actualizar el stock del producto a 0
+                    await productDao.updateProductById(product.detail._id, {
+                        "stock.quantity": 0,
+                    });
+                } else {
+                    // Caso: Hay suficiente stock para cubrir la solicitud
+                    total += product.detail.price * quantityRequested;
+    
+                    const stockToUpdate = stockAvailable - quantityRequested;
+                    await productDao.updateProductById(product.detail._id, {
+                        "stock.quantity": stockToUpdate,
+                    });
+                }
+            }
+    
+            // Actualizar el carrito según los productos restantes
+            if (remainingProducts.length > 0) {
+                await cartDao.updateCartById(cartId, { products: remainingProducts });
+            } else {
+                await cartDao.clearCart(cartId);
+            }
+    
+            // Crear el ticket de compra
+            const ticketData = { amount: total, purchaser: userId };
+            const ticket = await ticketDao.createTicket(ticketData);
+    
+            // Preparar la información del ticket
+            const ticketInfo = {
+                message: "Compra completada con éxito",
+                totalAmount: total,
+                partiallySoldProducts: productsPartialSold,
+                cart: remainingProducts.length > 0 ? remainingProducts : [],
+                ticket,
+            };
+    
+            // Renderizar la vista del ticket
+            return res.status(200).render("ticket", ticketInfo);
+    
         } catch (error) {
-            return res.status(500).json({ message: "Error al realizar la compra", error: error.message });
+            return res.status(500).json({
+                message: "Error al realizar la compra",
+                error: error.message,
+            });
         }
-    }
-};
+    };    
+}

@@ -20,7 +20,8 @@ export default class ProductDao {
             const limit = paramFilters.limit ? parseInt(paramFilters.limit) : 10;
             const page = paramFilters.page ? parseInt(paramFilters.page) : 1;
             const productsFound = await ProductModel.paginate(filters, { limit: limit, page: page, sort: sort, lean: true, pagination: true });
-            productsFound.docs = productsFound.docs.map(({ id, ...productWithoutId }) => productWithoutId);
+            let finalProducts = productsFound.docs;
+            finalProducts = finalProducts.map(({ id, ...productWithoutId }) => productWithoutId);
             return productsFound;
         } catch (error) {
             throw new Error("Hubo un error al obtener los productos.." + error.message );
