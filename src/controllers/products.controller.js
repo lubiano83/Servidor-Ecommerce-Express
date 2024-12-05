@@ -8,7 +8,8 @@ export default class ProductController {
 
     getProducts = async(req, res) => {
         try {
-            const products = await productDao.getProducts();
+            const paramFilters = req.query;
+            const products = await productDao.getProducts(paramFilters);
             return res.status(200).json({ products });
         } catch (error) {
             return res.status(500).json({ message: "Error al obtener los productos", error: error.message });
@@ -67,7 +68,7 @@ export default class ProductController {
         }
     };
 
-    updateProduct = async (req, res) => {
+    updateProduct = async(req, res) => {
         try {
             const { title, category, brand, model, filter, specifications, price, stock, description } = req.body;
             const { id } = req.params;
@@ -100,4 +101,20 @@ export default class ProductController {
             res.status(500).json({ message: "Error interno del servidor", error: error.message });
         }
     };
+
+    toggleAvailability = async(req, res) => {
+        try {
+            const { id }= req.params;
+            const product = await productDao.getProductById(id);
+            if (product) {
+                product.available = !product.available;
+                await product.save();
+                return res.status(200).send({ product });
+            } else {
+                return res.status(404).send({ message: "Producto no encontrado" });
+            }
+        } catch (error) {
+            res.status(500).json({ message: "Error interno del servidor", error: error.message });
+        }
+    }
 }

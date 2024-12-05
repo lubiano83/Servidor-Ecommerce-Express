@@ -7,13 +7,25 @@ export default class ProductDao {
         connectDB(); // Intentamos conectar a la base de datos
     }
     
-    getProducts = async() => {
+    getProducts = async (paramFilters = {}) => {
         try {
-            return await ProductModel.find();
+            const $and = [];
+            if (paramFilters.category) $and.push({ category: paramFilters.category });
+            if (paramFilters.title) $and.push({ title: paramFilters.title });
+            if (paramFilters.code) $and.push({ code: paramFilters.code });
+            if (paramFilters.available) $and.push({ available: paramFilters.available });
+            const filters = $and.length > 0 ? { $and } : {};
+            let sort = {};
+            if (paramFilters.sort) sort.price = paramFilters.sort === "asc" ? 1 : -1;
+            const limit = paramFilters.limit ? parseInt(paramFilters.limit) : 10;
+            const page = paramFilters.page ? parseInt(paramFilters.page) : 1;
+            const productsFound = await ProductModel.paginate(filters, { limit: limit, page: page, sort: sort, lean: true, pagination: true });
+            productsFound.docs = productsFound.docs.map(({ id, ...productWithoutId }) => productWithoutId);
+            return productsFound;
         } catch (error) {
-            throw new Error({ message: "Error al obtener los productos en el dao", error: error.message });
+            throw new Error("Hubo un error al obtener los productos.." + error.message );
         }
-    }
+    };    
 
     getProductById = async( id ) => {
         try {

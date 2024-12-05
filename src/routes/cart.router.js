@@ -13,7 +13,7 @@ ROUTER.get("/:id", cartController.getCartById);
 ROUTER.delete("/:id", permissions, soloAdmin, cartController.deleteCardById);
 ROUTER.patch("/:id", permissions, soloAdmin, cartController.updateCartById);
 ROUTER.post("/products/:pid", permissions, soloUser, cartController.addProductToCart);
-ROUTER.put("/clear/:id", cartController.clearCart);
+ROUTER.delete("/clear/:id", cartController.clearCart);
 ROUTER.put("/completepurchase", permissions, soloUser, cartController.completePurchase);
 ROUTER.delete("/:cid/products/:pid", permissions, soloAdmin, cartController.deleteProductFromCart);
 

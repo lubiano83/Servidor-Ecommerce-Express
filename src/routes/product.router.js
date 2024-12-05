@@ -13,5 +13,6 @@ ROUTER.post("/",  permissions, soloAdmin, uploadProducts.single('image'), produc
 ROUTER.get("/:id", productController.getProductById);
 ROUTER.delete("/:id", permissions, soloAdmin, productController.deleteProductById);
 ROUTER.patch("/:id",  permissions, soloAdmin, uploadProducts.single('image'), productController.updateProduct);
+ROUTER.put("/available/:id", permissions, soloAdmin, productController.toggleAvailability);
 
 export default ROUTER;
