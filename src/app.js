@@ -2,6 +2,7 @@ import express from "express";
 import userRouter from "./routes/user.router.js";
 import productRouter from "./routes/product.router.js";
 import cartRouter from "./routes/cart.router.js";
+import ticketRouter from "./routes/ticket.router.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import passport from "passport";
@@ -37,6 +38,7 @@ APP.use(cors({
 APP.use("/api/auth", userRouter);
 APP.use("/api/products", productRouter);
 APP.use("/api/carts", cartRouter);
+APP.use("/api/tickets", ticketRouter);
 
 // Método que gestiona las rutas inexistentes.
 APP.use("*", (req, res) => {

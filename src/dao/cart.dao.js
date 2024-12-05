@@ -1,5 +1,4 @@
 import CartModel from "../models/cart.model.js";
-import ProductModel from "../models/product.model.js";
 import { isValidId, connectDB } from "../config/mongoose.config.js";
 
 export default class CartDao {
@@ -8,14 +7,14 @@ export default class CartDao {
         connectDB(); // Intentamos conectar a la base de datos
     }
     
-    getCarts = async() => {
+    getCarts = async () => {
         try {
             return await CartModel.find();
         } catch (error) {
-            throw new Error({ message: "Error al obtener los carritos en el dao", error: error.message });
+            throw new Error("Error al obtener los carritos en el DAO: " + error.message);
         }
-    }
-
+    };
+    
     getCartById = async( id ) => {
         try {
             if (!isValidId(id)) throw new Error("ID no válido");
@@ -49,7 +48,7 @@ export default class CartDao {
     deleteCartById = async( id ) => {
         try {
             if (!isValidId(id)) throw new Error("ID no válido");
-            const cart = await CartModel.findById( id );
+            const cart = await this.getCartById( id );
             if(!cart) throw new Error("Carrito no encontrado");
             return await CartModel.findByIdAndDelete( id );
         } catch (error) {

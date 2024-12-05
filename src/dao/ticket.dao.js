@@ -37,7 +37,7 @@ export default class TicketDao {
     updateTicketById = async( id, doc ) => {
         try {
             if (!isValidId(id)) throw new Error("ID no válido");
-            const ticket = await TicketModel.findById(id);
+            const ticket = await this.getTicketById(id);
             if (!ticket) throw new Error("Usuario no encontrado");
             return await TicketModel.findByIdAndUpdate(id, { $set: doc }, { new: true });
         } catch (error) {
@@ -48,7 +48,7 @@ export default class TicketDao {
     deleteTicketById = async( id ) => {
         try {
             if (!isValidId(id)) throw new Error("ID no válido");
-            const ticket = await TicketModel.findById(id);
+            const ticket = await this.getTicketById(id);
             if (!ticket) return new Error("Usuario no encontrado");
             await TicketModel.findOneAndDelete({ _id: id })
             return { status: 200, message: "Usuario y carrito eliminados exitosamente" };

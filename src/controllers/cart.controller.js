@@ -72,25 +72,14 @@ export default class CartController {
             if (!cart) return res.status(404).json({ message: "Carrito no encontrado" });
             const product = await productDao.getProductById(pid);
             if (!product) return res.status(404).json({ message: "Producto no encontrado" });
-            const existingProduct = cart.products.find(item => item.product?.toString() === pid);
-            if (existingProduct) {
-                existingProduct.quantity += 1;
+            const existingProductIndex = cart.products.findIndex(item => item.detail._id.toString() === pid.toString());
+            if (existingProductIndex !== -1) {
+                cart.products[existingProductIndex].requestedQuantity += 1;
             } else {
-                cart.products.push({ product: pid, quantity: 1 });
+                cart.products.push({ detail: pid, requestedQuantity: 1 });
             }
-            await cartDao.updateCartById(cid, cart.products);
-            const populatedCart = await cartDao.getCartById(cid);
-            const consolidatedProducts = [];
-            populatedCart.products.forEach(item => {
-                const existing = consolidatedProducts.find(p => p._id.toString() === item.product._id.toString());
-                if (existing) {
-                    existing.quantity += item.quantity;
-                } else {
-                    consolidatedProducts.push({ ...item.product._doc, quantity: item.quantity });
-                }
-            });
-            const transformedCart = { ...populatedCart._doc, products: consolidatedProducts };
-            return res.status(200).json({ message: "Producto agregado al carrito con éxito", cart: transformedCart });
+            const addProduct = await cartDao.updateCartById(cid, cart.products);
+            return res.status(200).json({ message: "Producto agregado al carrito con éxito", cart: addProduct });
         } catch (error) {
             return res.status(500).json({ message: "Error al agregar el producto al carrito", error: error.message });
         }
@@ -112,15 +101,23 @@ export default class CartController {
 
     deleteProductFromCart = async(req, res) => {
         try {
-            const cartId = req.user?.id;
-            const cart = await cartDao.getCartById(id)
-            console.log(cart);
-            
-            
-            
-            
+            const { cid, pid } = req.params;
+            if (!pid || !cid) return res.status(400).json({ message: "Faltan parámetros obligatorios" });
+            const cart = await cartDao.getCartById(cid)
+            if(!cart) return res.send({ message: "El carrito no existe" });
+            const product = await productDao.getProductById(pid)
+            if(!product) return res.send({ message: "El producto no existe" });
+            const existingProductIndex = cart.products.findIndex(item => item.detail._id.toString() === pid.toString());
+            if (existingProductIndex !== -1) {
+                cart.products[existingProductIndex].requestedQuantity -= 1;
+                if (cart.products[existingProductIndex].requestedQuantity < 1) {
+                    cart.products.splice(existingProductIndex, 1);
+                }
+            }
+            const finalCart = await cartDao.updateCartById(cid, cart.products);
+            return res.status(200).json({ message: "Producto agregado al carrito con éxito", cart: finalCart });
         } catch (error) {
-            
+            return res.status(500).json({ message: "Error al rebajar un producto en el carrito", error: error.message });
         }
     }
 

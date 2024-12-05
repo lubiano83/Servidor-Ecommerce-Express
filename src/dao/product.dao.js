@@ -45,7 +45,7 @@ export default class ProductDao {
     updateProductById = async( id, doc ) => {
         try {
             if (!isValidId(id)) throw new Error("ID no válido");
-            const product = await ProductModel.findById(id);
+            const product = await this.getProductById(id);
             if(!product) throw new Error("Producto no encontrado");
             return await ProductModel.findByIdAndUpdate(id, { $set: doc }, { new: true });
         } catch (error) {
@@ -56,7 +56,7 @@ export default class ProductDao {
     deleteProductById = async( id ) => {
         try {
             if (!isValidId(id)) throw new Error("ID no válido");
-            const product = await ProductModel.findById(id);
+            const product = await this.getProductById(id);
             if(!product) throw new Error("Producto no encontrado");
             return await ProductModel.findByIdAndDelete( id );
         } catch (error) {

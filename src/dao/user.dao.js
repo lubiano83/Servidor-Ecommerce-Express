@@ -46,7 +46,7 @@ export default class UserDao {
     updateUserById = async( id, doc ) => {
         try {
             if (!isValidId(id)) throw new Error("ID no válido");
-            const user = await UserModel.findById(id);
+            const user = await this.getUserById(id);
             if (!user) throw new Error("Usuario no encontrado");
             return await UserModel.findByIdAndUpdate(id, { $set: doc }, { new: true });
         } catch (error) {
@@ -57,11 +57,10 @@ export default class UserDao {
     deleteUserById = async( id ) => {
         try {
             if (!isValidId(id)) throw new Error("ID no válido");
-            const user = await UserModel.findById(id);
+            const user = await this.getUserById(id);
             if (!user) return new Error("Usuario no encontrado");
             const cartId = user.cart.toString();
-            await UserModel.findOneAndDelete({ _id: id }) && await CartModel.findOneAndDelete({ _id: cartId });
-            return { status: 200, message: "Usuario y carrito eliminados exitosamente" };
+            return await UserModel.findOneAndDelete({ _id: id }) && await CartModel.findOneAndDelete({ _id: cartId });
         } catch (error) {
             throw new Error("Error al eliminar un usuario y su carrito: " + error.message);
         }
