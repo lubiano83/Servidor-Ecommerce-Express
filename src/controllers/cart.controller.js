@@ -131,6 +131,7 @@ export default class CartController {
     completePurchase = async (req, res) => {
         const cartId = req.user.cart; // ID del carrito del usuario
         const userId = req.user.id; // ID del usuario
+    
         try {
             // Obtener el carrito
             const cart = await cartDao.getCartById(cartId);
@@ -144,51 +145,67 @@ export default class CartController {
     
             // Procesar los productos del carrito
             for (const product of cart.products) {
-                const stockAvailable = product.detail.stock.quantity; // Stock disponible
-                const quantityRequested = product.requestedQuantity; // Cantidad solicitada
+                let productId;
+                if (typeof product.detail === "object" && product.detail._id) {
+                    productId = product.detail._id;
+                } else if (typeof product.detail === "string") {
+                    productId = product.detail;
+                } else {
+                    return res.status(400).json({
+                        message: `ID no válido para el producto: ${JSON.stringify(product.detail)}`,
+                    });
+                }
+    
+                const productDetails = await productDao.getProductById(productId);
+                if (!productDetails) {
+                    return res.status(404).json({
+                        message: `Producto con ID ${productId} no encontrado.`,
+                    });
+                }
+    
+                const stockAvailable = productDetails.stock.quantity;
+                const quantityRequested = product.requestedQuantity;
     
                 if (quantityRequested > stockAvailable) {
-                    // Caso: No hay suficiente stock para cubrir la solicitud
-                    total += product.detail.price * stockAvailable;
+                    total += productDetails.price * stockAvailable;
     
                     productsPartialSold.push({
-                        productId: product.detail._id,
-                        title: product.detail.title,
+                        productId: productDetails.id,
+                        title: productDetails.title,
                         requestedQuantity: quantityRequested,
                         soldQuantity: stockAvailable,
                         remainingQuantity: quantityRequested - stockAvailable,
                     });
     
                     remainingProducts.push({
-                        detail: product.detail._id,
+                        detail: productDetails.id,
                         requestedQuantity: quantityRequested - stockAvailable,
                     });
     
-                    // Actualizar el stock del producto a 0
-                    await productDao.updateProductById(product.detail._id, {
-                        "stock.quantity": 0,
+                    await productDao.updateProductById(productDetails.id, {
+                        stock: { quantity: 0 },
                     });
                 } else {
-                    // Caso: Hay suficiente stock para cubrir la solicitud
-                    total += product.detail.price * quantityRequested;
-    
+                    total += productDetails.price * quantityRequested;
                     const stockToUpdate = stockAvailable - quantityRequested;
-                    await productDao.updateProductById(product.detail._id, {
-                        "stock.quantity": stockToUpdate,
+                    await productDao.updateProductById(productDetails.id, {
+                        stock: { quantity: stockToUpdate },
                     });
                 }
             }
     
-            // Actualizar el carrito según los productos restantes
             if (remainingProducts.length > 0) {
-                await cartDao.updateCartById(cartId, { products: remainingProducts });
+                await cartDao.updateCartById(cartId, remainingProducts);
             } else {
-                await cartDao.clearCart(cartId);
+                await cartDao.updateCartById(cartId, []);
             }
     
             // Crear el ticket de compra
             const ticketData = { amount: total, purchaser: userId };
-            const ticket = await ticketDao.createTicket(ticketData);
+            const createdTicket = await ticketDao.createTicket(ticketData);
+    
+            // Poblamos el ticket con la información del usuario
+            const ticket = await ticketDao.getTicketById(createdTicket.id);
     
             // Preparar la información del ticket
             const ticketInfo = {
@@ -199,8 +216,7 @@ export default class CartController {
                 ticket,
             };
     
-            // Renderizar la vista del ticket
-            return res.status(200).render("ticket", ticketInfo);
+            return res.status(200).json(ticketInfo);
     
         } catch (error) {
             return res.status(500).json({

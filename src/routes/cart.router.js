@@ -14,7 +14,7 @@ ROUTER.delete("/:id", permissions, soloAdmin, cartController.deleteCardById);
 ROUTER.patch("/:id", permissions, soloAdmin, cartController.updateCartById);
 ROUTER.post("/products/:pid", permissions, soloUser, cartController.addProductToCart);
 ROUTER.delete("/clear/:id", cartController.clearCart);
-ROUTER.put("/completepurchase", permissions, soloUser, cartController.completePurchase);
 ROUTER.delete("/:cid/products/:pid", permissions, soloAdmin, cartController.deleteProductFromCart);
+ROUTER.put("/completepurchase", permissions, soloUser, cartController.completePurchase);
 
 export default ROUTER;
