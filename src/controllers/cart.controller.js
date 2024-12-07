@@ -20,7 +20,7 @@ export default class CartController {
 
     getCartById = async(req, res) => {
         try {
-            const { id } = req.params;
+            const id = req.user.cart;
             const cart = await cartDao.getCartById( id );
             if(!cart) return res.status(404).send({ message: "Carrito no encontrado" });
             return res.status(200).json({ cart });
@@ -106,7 +106,8 @@ export default class CartController {
 
     deleteProductFromCart = async(req, res) => {
         try {
-            const { cid, pid } = req.params;
+            const cid = req.user.cart
+            const { pid } = req.params;
             if (!pid || !cid) return res.status(400).json({ message: "Faltan parámetros obligatorios" });
             const cart = await cartDao.getCartById(cid);
             if(!cart) return res.send({ message: "El carrito no existe" });
@@ -120,7 +121,7 @@ export default class CartController {
                 }
             }
             const deleteProduct = await cartDao.updateCartById(cid, cart.products);
-            return res.status(200).json({ message: "Producto agregado al carrito con éxito", deleteProduct });
+            return res.status(200).json({ message: "Producto eliminado del carrito con éxito", deleteProduct });
         } catch (error) {
             return res.status(500).json({ message: "Error al rebajar un producto del carrito", error: error.message });
         }

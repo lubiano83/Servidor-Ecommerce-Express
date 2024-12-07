@@ -23,7 +23,7 @@ export default class UserController {
 
     getUserById = async(req, res) => {
         try {
-            const { id } = req.params;
+            const id = req.user.id;
             const user = await userDao.getUserById(id);
             if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
             return res.status(200).json({ user });
@@ -105,7 +105,7 @@ export default class UserController {
     updateUser = async (req, res) => {
         try {
             const { first_name, last_name, region, city, street, number, phone } = req.body;
-            const { id } = req.params;
+            const id = req.user.id;
             const { filename } = req.file;
             if (!filename) return res.status(400).json({ message: "No se subió ninguna imagen" });
             const newImagePath = `/profile/${filename}`;

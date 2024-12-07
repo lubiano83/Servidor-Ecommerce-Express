@@ -9,15 +9,15 @@ const permissions = passport.authenticate("current", { session: false });
 
 const ROUTER = Router();
 
-ROUTER.get("/users", userController.getUsers);
-ROUTER.delete("/users", userController.logoutUser);
-ROUTER.get("/users/:id", userController.getUserById);
-ROUTER.patch("/users/:id", uploadProfile.single('image'), userController.updateUser);
+ROUTER.get("/users", permissions, soloAdmin, userController.getUsers);
+ROUTER.delete("/logout", permissions, soloUser, userController.logoutUser);
+ROUTER.get("/users/:id", permissions, soloUser, userController.getUserById);
+ROUTER.patch("/update", permissions, soloUser, uploadProfile.single('image'), userController.updateUser);
 ROUTER.delete("/users/:id", permissions, soloAdmin, userController.deleteUserById);
 ROUTER.post("/register", userController.registerUser);
 ROUTER.get("/register", permissions, soloAdmin, userController.usersRegistered);
 ROUTER.post("/login", userController.loginUser);
-ROUTER.get("/login", userController.usersLogged);
-ROUTER.patch("/role/:id", userController.updateRole);
+ROUTER.get("/login", permissions, soloAdmin, userController.usersLogged);
+ROUTER.patch("/role/:id", permissions, soloAdmin, userController.updateRole);
 
 export default ROUTER;

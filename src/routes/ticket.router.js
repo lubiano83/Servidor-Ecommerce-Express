@@ -1,14 +1,14 @@
 import { Router } from "express";
 import TicketController from "../controllers/ticket.controller.js";
 import passport from "passport";
-import { soloAdmin, soloUser } from "../middlewares/auth.middleware.js";
+import { soloAdmin } from "../middlewares/auth.middleware.js";
 
 const ROUTER = Router();
 const ticketController = new TicketController();
 const permissions = passport.authenticate("current", { session: false });
 
-ROUTER.get("/", ticketController.getTickets);
-ROUTER.get("/:id", ticketController.getTicketById);
+ROUTER.get("/", permissions, soloAdmin, ticketController.getTickets);
+ROUTER.get("/id",permissions, soloAdmin, ticketController.getTicketById);
 ROUTER.post("/", permissions, soloAdmin, ticketController.createTicket);
 
 export default ROUTER;
