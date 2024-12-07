@@ -18,6 +18,6 @@ ROUTER.post("/register", userController.registerUser);
 ROUTER.get("/register", permissions, soloAdmin, userController.usersRegistered);
 ROUTER.post("/login", userController.loginUser);
 ROUTER.get("/login", userController.usersLogged);
-ROUTER.patch("/role/:id", permissions, soloUser, userController.updateRole);
+ROUTER.patch("/role/:id", userController.updateRole);
 
 export default ROUTER;

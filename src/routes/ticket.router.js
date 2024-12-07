@@ -9,6 +9,6 @@ const permissions = passport.authenticate("current", { session: false });
 
 ROUTER.get("/", ticketController.getTickets);
 ROUTER.get("/:id", ticketController.getTicketById);
-ROUTER.post("/", permissions, soloUser, ticketController.createTicket);
+ROUTER.post("/", permissions, soloAdmin, ticketController.createTicket);
 
 export default ROUTER;
