@@ -147,7 +147,7 @@ export default class UserController {
             const { id } = req.params
             const { role } = req.body;
             if (Array.isArray(role)) role = role[0];
-            const validRoles = ["admin", "user"];
+            const validRoles = ["admin", "user", "developer"];
             if (!role || typeof role !== "string" || !validRoles.includes(role)) return res.status(400).json({ message: `El campo 'role' debe ser uno de los siguientes valores: ${validRoles.join(", ")}` });
             if (!role) return res.status(400).json({ message: "El campo 'role' es requerido" });
             const updateUser = await userDao.updateUserById( id, { role } );
