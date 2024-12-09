@@ -22,17 +22,16 @@ export default class TicketController {
             return res.status(500).json({ message: "Error al obtener el ticket por el id", error: error.message });
         }
     }
-
-    createTicket = async (req, res) => {
+    
+    deleteTicketById = async(req, res) => {
         try {
-            const { amount } = req.body;
-            const purchaser = req.user.id;
-            if (!amount || !purchaser) return res.status(400).json({ message: "Faltan datos obligatorios: amount y purchaser" });
-            const ticketData = { amount, purchaser };
-            const ticket = await ticketDao.createTicket(ticketData);
-            return res.status(201).json({ message: "Ticket creado con éxito", ticket });
+            const { id } = req.params;
+            const ticket = await ticketDao.getTicketById(id);
+            if(!ticket) return res.send({ message: "El ticket no existe" });
+            const ticketDeleted = await ticketDao.deleteTicketById(id);
+            return res.status(200).send({ message: "Ticket eliminado con exito", ticketDeleted })
         } catch (error) {
-            return res.status(500).json({ message: "Error al crear el ticket", error: error.message });
+            return res.status(500).json({ message: "Error al eliminar el ticket por el id", error: error.message });
         }
-    };    
+    }
 }

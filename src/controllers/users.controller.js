@@ -102,7 +102,7 @@ export default class UserController {
         }
     };
 
-    updateUser = async (req, res) => {
+    updateUser = async(req, res) => {
         try {
             const { first_name, last_name, region, city, street, number, phone } = req.body;
             const id = req.user.id;

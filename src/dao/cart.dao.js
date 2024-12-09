@@ -34,7 +34,7 @@ export default class CartDao {
         }
     }
 
-    updateCartById = async (id, products) => {
+    updateCartById = async( id, products ) => {
         try {
             if (!isValidId(id)) throw new Error("ID no válido");
             const updatedCart = await CartModel.findByIdAndUpdate( id, { products }, { new: true } );

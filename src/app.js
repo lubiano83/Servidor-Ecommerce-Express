@@ -9,13 +9,11 @@ import passport from "passport";
 import initializePassport from "./config/passport.config.js";
 import { __dirname } from "./utils/bcrypt.js";
 import path from "path";
-import { soloAdmin, soloUser } from "./middlewares/auth.middleware.js";
 
 // Variables
 const APP = express();
 const PORT = 8080;
 const HOST = "localhost";
-const permissions = passport.authenticate("current", { session: false });
 
 // Middlewares
 APP.use(express.json());

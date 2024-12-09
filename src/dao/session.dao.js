@@ -15,7 +15,7 @@ export default class UserDao {
         }
     };
     
-    createSession = async (id, token) => {
+    createSession = async ( id, token ) => {
         try {
             if (!isValidId(id)) throw new Error("ID no válido");
             const session = await SessionModel({ id, token });
@@ -26,7 +26,7 @@ export default class UserDao {
         }
     };
 
-    deleteSession = async (token) => {
+    deleteSession = async ( token ) => {
         try {
             const session = await SessionModel.findOneAndDelete({ token });
             if (!session) throw new Error ("Session no encontrada");
@@ -35,7 +35,7 @@ export default class UserDao {
         }
     };
 
-    getUserToken = async(token) => {
+    getUserToken = async( token ) => {
         try {
             const user = await SessionModel.findOne({ token });
             if(!user) throw new Error ("Usuario no encontrado");

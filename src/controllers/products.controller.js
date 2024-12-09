@@ -27,7 +27,7 @@ export default class ProductController {
         }
     }
 
-    createProduct = async (req, res) => {
+    createProduct = async(req, res) => {
         try {
             const { title, category, brand, model, filter, specifications, price, stock, description } = req.body;
             const { filename } = req.file || {};
@@ -48,7 +48,7 @@ export default class ProductController {
         }
     };
     
-    deleteProductById = async (req, res) => {
+    deleteProductById = async(req, res) => {
         try {
             const { id } = req.params;
             const product = await productDao.getProductById(id);

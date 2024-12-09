@@ -5,7 +5,6 @@ import UserDao from "../dao/user.dao.js";
 
 const cartDao = new CartDao();
 const productDao = new ProductDao();
-const userDao = new UserDao();
 const ticketDao = new TicketDao();
 
 export default class CartController {
@@ -51,7 +50,7 @@ export default class CartController {
         }
     }
 
-    updateCartById = async (req, res) => {
+    updateCartById = async(req, res) => {
         try {
             const { id } = req.params;
             const { products } = req.body;
@@ -66,7 +65,7 @@ export default class CartController {
         }
     };
     
-    addProductToCart = async (req, res) => {
+    addProductToCart = async(req, res) => {
         try {
             const { pid } = req.params;
             const cid = req.user?.cart;
@@ -127,7 +126,7 @@ export default class CartController {
         }
     }
 
-    completePurchase = async (req, res) => {
+    completePurchase = async(req, res) => {
         try {
             const cartId = req.user.cart;
             const userId = req.user.id;

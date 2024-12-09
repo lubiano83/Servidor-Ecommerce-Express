@@ -7,7 +7,7 @@ export default class ProductDao {
         connectDB(); // Intentamos conectar a la base de datos
     }
     
-    getProducts = async (paramFilters = {}) => {
+    getProducts = async ( paramFilters = {} ) => {
         try {
             const $and = [];
             if (paramFilters.category) $and.push({ category: paramFilters.category });
@@ -37,7 +37,7 @@ export default class ProductDao {
         }
     }
 
-    getProductByTitle = async(title) => {
+    getProductByTitle = async( title ) => {
         try {
             return await ProductModel.findOne({ title });
         } catch (error) {
